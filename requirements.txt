@@ -3,4 +3,5 @@ pyjwt
 uvicorn
 passlib
 python-multipart
-bcrypt
+bcrypt==4.0.1
+peewee
