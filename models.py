@@ -10,13 +10,20 @@ class Table(Model):
 class User(Table):
     username = CharField()
     full_name = CharField()
-    email = CharField()
+    telegramm = CharField()
     hashed_password = CharField()
     disabled = BooleanField()
 
+class Role(Table):
+    name = CharField()
+
+class UserRole(Table):
+    user = ForeignKeyField(User)
+    role = ForeignKeyField(Role)
+
 def create_tables():
     with db:
-        db.create_tables([User])
+        db.create_tables([User, Role, UserRole])
 
 if __name__ == "__main__":
     create_tables()

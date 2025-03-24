@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, List
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel
-import models
+import models as m
 # to get a string like this run:
 # openssl rand -hex 32
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
@@ -29,6 +29,7 @@ class User(BaseModel):
     email: str | None = None
     full_name: str | None = None
     disabled: bool | None = None
+    roles: List[str] = []
 
 
 class UserInDB(User):
@@ -51,14 +52,23 @@ def get_password_hash(password):
 
 
 def get_user(username: str):
-    user: models.User = models.User.get_or_none(username = username)
+    user: m.User = m.User.get_or_none(username = username)
+    roles: List[m.Role] = (
+        m.Role
+        .select(m.Role)
+        .join(m.UserRole, on=(m.UserRole.role==m.Role.id))
+        .where(m.UserRole.user==user.id)
+    )
+    # print(roles.sql()[0])
+    roles_str = [r.name for r in roles]
     if user is not None:
         return UserInDB(
             username=user.username,
             full_name=user.full_name,
-            email=user.email,
+            telegramm=user.telegramm,
             hashed_password=user.hashed_password,
-            disabled=user.disabled
+            disabled=user.disabled,
+            roles=roles_str
         )
 
 
